@@ -1,0 +1,142 @@
+# ServerDi Topic OS
+
+ServerDi Topic OS is a safety-first open-source playbook for building and maintaining self-hosted AI agent systems with OpenClaw, Hermes, Codex, Docker, and Telegram forum topics. It turns messy agent workflows into bounded, auditable micro-passes so maintainers can use AI agents without handing them uncontrolled access to production, secrets, paid APIs, or private data.
+
+## Why This Exists
+
+Self-hosted AI agents are useful in real engineering work, but they can become risky when every task has the same permissions, context, and operational scope. A small documentation fix should not have the same authority as a production restart. A model investigation should not inherit stale Telegram context. A patch pass should not silently become a cleanup pass.
+
+This repository documents a practical operating model for making agent work smaller, safer, and easier to review.
+
+## Who It Is For
+
+- Engineers running self-hosted AI tools around real infrastructure.
+- Open-source maintainers who want agent help without uncontrolled repository changes.
+- Small teams using Telegram topics, Codex, OpenClaw, Hermes, and Docker as an operational layer.
+- Builders who need repeatable prompts, review gates, and public-safe documentation patterns.
+
+## What Problem It Solves
+
+AI agent systems often fail at boundaries:
+
+- unclear task scope;
+- stale or mixed context;
+- accidental access to production runtime state;
+- paid API calls without owner approval;
+- local files mistaken for delivered results;
+- patches created without validation;
+- public docs contaminated with private data.
+
+ServerDi Topic OS gives operators a shared vocabulary and workflow for handling these failure modes before they become incidents.
+
+## Core Concepts
+
+- **One bounded outcome:** each task has one clear deliverable.
+- **Micro-pass:** a narrow agent pass such as scout, patch, validation, audit, or final report.
+- **Topic OS:** Telegram forum topics act as operational lanes for sessions, decisions, and reports.
+- **Boundary contour:** OpenClaw, Hermes, Codex, Docker, and Telegram have separate responsibilities.
+- **CostGate:** risky or paid tool use requires explicit owner approval.
+- **Validation-first delivery:** success is proven by checks, events, or delivered artifacts, not by claims.
+- **Public-safe documentation:** examples use placeholders and never include private deployment data.
+
+## Safety Principles
+
+- Keep scout passes read-only.
+- Never mix unrelated runtime changes.
+- Do not expose secrets, tokens, private keys, cookies, or env values.
+- Do not publish real Telegram IDs, thread IDs, personal data, billing data, or private infrastructure details.
+- Do not restart production services without explicit approval.
+- Prefer smallest safe patch over broad cleanup.
+- Validate before commit.
+- Report exactly what changed and what was not touched.
+
+## Quick Start
+
+1. Pick one bounded outcome.
+2. Choose the pass type: scout, patch, validation, audit, or documentation-only.
+3. Copy a template from `examples/`.
+4. Replace placeholders such as `<TELEGRAM_GROUP_ID>`, `<TOPIC_ID>`, and `<MODEL_PROVIDER/MODEL_NAME>`.
+5. Run the pass with the minimum required permissions.
+6. Validate the result.
+7. Write a final report before moving to the next task.
+
+## Repository Structure
+
+```text
+.
+|-- README.md
+|-- LICENSE
+|-- SECURITY.md
+|-- CONTRIBUTING.md
+|-- CODE_OF_CONDUCT.md
+|-- docs/
+|   |-- SERVERDI_AGENT_OPERATING_MANUAL.md
+|   |-- CODEX_MICRO_PASS_TEMPLATES.md
+|   |-- OPENCLAW_HERMES_BOUNDARIES.md
+|   |-- TELEGRAM_TOPIC_OS.md
+|   |-- COSTGATE_APPROVAL_POLICY.md
+|   |-- DOCUMENT_INGESTION_ROADMAP.md
+|   `-- SELF_HOSTED_AGENT_OS.md
+`-- examples/
+    |-- topic-map.example.md
+    |-- model-priority-map.example.md
+    |-- read-only-scout.prompt.md
+    |-- patch-pass.prompt.md
+    |-- final-report-template.md
+    `-- document-ingestion-pass.prompt.md
+```
+
+## Example Workflows
+
+### Read-Only Scout
+
+Use a scout pass to inspect a repository, topic, or architecture question without changing files or calling paid tools. The output is a short report with findings, risks, and a recommended next bounded task.
+
+### Patch Pass
+
+Use a patch pass when the target is clear. The agent edits only the required files, validates the result, and reports the exact files changed.
+
+### Validation Pass
+
+Use a validation pass after a patch, release, ingestion run, or delivery event. Validation checks should be concrete: tests, file diffs, event receipts, delivered messages, or rendered artifacts.
+
+### Documentation-Only Pass
+
+Use this pass when the desired outcome is public documentation. The agent must avoid private paths, logs, session data, and real identifiers.
+
+## How This Helps OSS Maintainers
+
+Maintainers can accept useful agent contributions while keeping changes reviewable:
+
+- narrow prompts reduce unrelated edits;
+- validation reports make review faster;
+- boundary rules prevent agents from wandering into runtime systems;
+- public-safe examples lower the risk of accidental disclosure;
+- final reports document what was done and what remains.
+
+## How This Helps Self-Hosted AI Operators
+
+Operators get a practical control plane for agent work:
+
+- Telegram topics become operational lanes;
+- model choice is documented per task type;
+- approvals are separated from execution;
+- OpenClaw and Hermes responsibilities stay distinct;
+- risky operations require a human decision;
+- stale context is visible instead of implicit.
+
+## Roadmap
+
+- Add more micro-pass templates for incident review, release notes, and dependency audits.
+- Add public-safe checklists for model fallback and tool approval.
+- Expand document ingestion patterns with classification and redaction gates.
+- Add example topic maps for small teams and solo maintainers.
+- Add validation recipes for common documentation and repository tasks.
+
+## Author Note
+
+Created by a smart home automation engineer building a self-hosted AI operating layer for real-world engineering, maintenance, documentation, and personal workflows.
+
+## License
+
+Apache-2.0. See [LICENSE](LICENSE).

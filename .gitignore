@@ -1,0 +1,38 @@
+# Local environment and credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.cookie
+*cookie*
+*token*
+*secret*
+*private_key*
+
+# Runtime state and generated data
+logs/
+*.log
+sessions/
+memory/
+backups/
+generated/
+media/
+tmp/
+temp/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Dependencies and build outputs
+node_modules/
+dist/
+build/
+.cache/
+coverage/
