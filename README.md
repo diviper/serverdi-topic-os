@@ -85,6 +85,9 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
 |   `-- test_public_safety_scan.py
 `-- examples/
     |-- topic-map.example.md
+    |-- topic-map.solo-maintainer.example.md
+    |-- topic-map.small-team.example.md
+    |-- topic-map.documentation-workspace.example.md
     |-- model-priority-map.example.md
     |-- read-only-scout.prompt.md
     |-- patch-pass.prompt.md
@@ -124,6 +127,14 @@ The scanner is a guardrail, not a replacement for manual review. Maintainers sho
 ## Release Validation
 
 Before publishing docs, examples, prompts, templates, or lightweight tools, use the [release validation checklist](docs/RELEASE_VALIDATION_CHECKLIST.md). It covers scope, public safety, examples, prompt templates, scanner output, GitHub Actions, release notes, version or tag checks, manual review, and the final go/no-go decision.
+
+## Topic Map Examples
+
+Use the public-safe topic map examples when structuring agent operations for different maintainer shapes:
+
+- [Solo maintainer](examples/topic-map.solo-maintainer.example.md)
+- [Small team](examples/topic-map.small-team.example.md)
+- [Documentation-heavy workspace](examples/topic-map.documentation-workspace.example.md)
 
 ## Example Workflows
 
