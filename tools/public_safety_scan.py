@@ -19,6 +19,7 @@ OK = "OK"
 
 IGNORED_DIRS = {
     ".git",
+    ".local",
     ".pytest_cache",
     "node_modules",
     "dist",

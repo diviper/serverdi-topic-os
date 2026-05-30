@@ -14,6 +14,8 @@
 *private_key*
 
 # Runtime state and generated data
+.local/
+*.local.md
 logs/
 *.log
 sessions/
