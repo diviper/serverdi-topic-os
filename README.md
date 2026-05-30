@@ -66,6 +66,7 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
 .
 |-- README.md
 |-- LICENSE
+|-- CHANGELOG.md
 |-- SECURITY.md
 |-- CONTRIBUTING.md
 |-- CODE_OF_CONDUCT.md
@@ -78,7 +79,9 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
 |   |-- COSTGATE_APPROVAL_POLICY.md
 |   |-- DOCUMENT_INGESTION_ROADMAP.md
 |   |-- SELF_HOSTED_AGENT_OS.md
-|   `-- RELEASE_VALIDATION_CHECKLIST.md
+|   |-- RELEASE_VALIDATION_CHECKLIST.md
+|   |-- ROADMAP.md
+|   `-- OPENAI_CODEX_OSS_APPLICATION.md
 |-- tools/
 |   `-- public_safety_scan.py
 |-- tests/
@@ -123,6 +126,14 @@ Exit codes:
 - `1`: blockers were found, or warnings were found in `--strict` mode.
 
 The scanner is a guardrail, not a replacement for manual review. Maintainers should still inspect changes before publishing public documentation.
+
+## Project Maintenance
+
+Use these public maintenance files to track project direction and release readiness:
+
+- [Changelog](CHANGELOG.md)
+- [Roadmap](docs/ROADMAP.md)
+- [OpenAI Codex for Open Source application notes](docs/OPENAI_CODEX_OSS_APPLICATION.md)
 
 ## Release Validation
 

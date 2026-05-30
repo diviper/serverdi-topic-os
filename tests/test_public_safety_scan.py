@@ -102,6 +102,20 @@ class PublicSafetyScanTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("Status: OK", result.stdout)
 
+    def test_local_directory_is_skipped(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            local = root / ".local"
+            local.mkdir()
+            fake_key = "OPENAI_API_KEY=" + "sk-" + "local1234567890"
+            (local / "SCRATCH.md").write_text(fake_key + "\n", encoding="utf-8")
+            (root / "README.md").write_text("Clean notes.\n", encoding="utf-8")
+
+            result = run_scan(root, "--strict")
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("Status: OK", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
