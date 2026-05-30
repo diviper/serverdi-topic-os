@@ -30,6 +30,14 @@ Current pass: read-only scout
 
 Maps should avoid private IDs, real paths, live session filenames, raw logs, and runtime state.
 
+## Example Maps
+
+Use these public-safe example maps as starting points for different operating shapes:
+
+- [Solo maintainer](../examples/topic-map.solo-maintainer.example.md)
+- [Small team](../examples/topic-map.small-team.example.md)
+- [Documentation-heavy workspace](../examples/topic-map.documentation-workspace.example.md)
+
 ## Active State Docs
 
 Each active lane should have a current state document that records:
