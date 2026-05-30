@@ -69,6 +69,7 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
 |-- SECURITY.md
 |-- CONTRIBUTING.md
 |-- CODE_OF_CONDUCT.md
+|-- .github/workflows/public-safety-scan.yml
 |-- docs/
 |   |-- SERVERDI_AGENT_OPERATING_MANUAL.md
 |   |-- CODEX_MICRO_PASS_TEMPLATES.md
@@ -77,6 +78,10 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
 |   |-- COSTGATE_APPROVAL_POLICY.md
 |   |-- DOCUMENT_INGESTION_ROADMAP.md
 |   `-- SELF_HOSTED_AGENT_OS.md
+|-- tools/
+|   `-- public_safety_scan.py
+|-- tests/
+|   `-- test_public_safety_scan.py
 `-- examples/
     |-- topic-map.example.md
     |-- model-priority-map.example.md
@@ -85,6 +90,35 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
     |-- final-report-template.md
     `-- document-ingestion-pass.prompt.md
 ```
+
+## Public Safety Scan
+
+This repository includes a dependency-free Python scanner for catching public-disclosure risk markers before commit or release. It is meant to catch likely real values, private paths, and unsafe literals while allowing maintainers to review documentation-only safety warnings.
+
+Run it from the repository root:
+
+```bash
+python tools/public_safety_scan.py .
+```
+
+Use JSON output for automation:
+
+```bash
+python tools/public_safety_scan.py . --json
+```
+
+Use strict mode in CI when warnings should fail the check:
+
+```bash
+python tools/public_safety_scan.py . --strict
+```
+
+Exit codes:
+
+- `0`: no blockers were found.
+- `1`: blockers were found, or warnings were found in `--strict` mode.
+
+The scanner is a guardrail, not a replacement for manual review. Maintainers should still inspect changes before publishing public documentation.
 
 ## Example Workflows
 
