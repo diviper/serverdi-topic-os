@@ -77,7 +77,8 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
 |   |-- TELEGRAM_TOPIC_OS.md
 |   |-- COSTGATE_APPROVAL_POLICY.md
 |   |-- DOCUMENT_INGESTION_ROADMAP.md
-|   `-- SELF_HOSTED_AGENT_OS.md
+|   |-- SELF_HOSTED_AGENT_OS.md
+|   `-- RELEASE_VALIDATION_CHECKLIST.md
 |-- tools/
 |   `-- public_safety_scan.py
 |-- tests/
@@ -119,6 +120,10 @@ Exit codes:
 - `1`: blockers were found, or warnings were found in `--strict` mode.
 
 The scanner is a guardrail, not a replacement for manual review. Maintainers should still inspect changes before publishing public documentation.
+
+## Release Validation
+
+Before publishing docs, examples, prompts, templates, or lightweight tools, use the [release validation checklist](docs/RELEASE_VALIDATION_CHECKLIST.md). It covers scope, public safety, examples, prompt templates, scanner output, GitHub Actions, release notes, version or tag checks, manual review, and the final go/no-go decision.
 
 ## Example Workflows
 
