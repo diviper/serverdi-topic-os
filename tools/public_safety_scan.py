@@ -157,7 +157,7 @@ def should_scan_contents(path: Path) -> bool:
 
 def is_env_file_path(relative_path: str) -> bool:
     parts = Path(relative_path).parts
-    return any(part == ".env" or part.startswith(".env.") for part in parts)
+    return any(part == ".env" or (part.startswith(".env.") and part != ".env.example") for part in parts)
 
 
 def is_serverdi_topic_os_root(root: Path) -> bool:
