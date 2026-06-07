@@ -15,16 +15,23 @@ class FakeMailBackend:
     sent: list[dict[str, object]] = field(default_factory=list)
 
     def list_messages(self, account_id: str, limit: int = 10) -> list[dict[str, object]]:
-        return list(self.messages.get(account_id, []))[:limit]
+        return [self._headers_only(message) for message in self.messages.get(account_id, [])[:limit]]
 
     def search_messages(self, account_id: str, query: str, limit: int = 10) -> list[dict[str, object]]:
         query_lower = query.lower()
         found = []
         for message in self.messages.get(account_id, []):
-            haystack = " ".join(str(message.get(key, "")) for key in ["from", "subject", "text_body"]).lower()
+            haystack = " ".join(str(message.get(key, "")) for key in ["from", "subject", "text_body", "snippet"]).lower()
             if query_lower in haystack:
-                found.append({k: v for k, v in message.items() if k != "text_body"})
+                found.append(self._headers_only(message, include_snippet=True))
         return found[:limit]
+
+    @staticmethod
+    def _headers_only(message: dict[str, object], include_snippet: bool = False) -> dict[str, object]:
+        allowed = {"id", "from", "to", "subject", "date", "message_id", "attachments", "html_body_present"}
+        if include_snippet:
+            allowed.add("snippet")
+        return {key: value for key, value in message.items() if key in allowed}
 
     def read_message(self, account_id: str, message_id: str) -> dict[str, object]:
         for message in self.messages.get(account_id, []):

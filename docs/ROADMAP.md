@@ -21,6 +21,8 @@ This track turns the playbook into a small public-safe reference implementation.
 - Require additional explicit confirmation for work-calendar writes.
 - Add Docker and compose examples for private self-hosted deployment.
 - Add Hermes and OpenClaw integration guides.
+- Add richer fake connector fixtures for mail, attachment metadata, search snippets, CalDAV-like events, and repeated-confirmation failures.
+- Add a public-safe topic approval demo that connects preview/confirm tools to approval lanes.
 - Run package tests and the public-safety scanner in CI.
 
 ## Near-Term

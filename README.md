@@ -81,7 +81,10 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
 |   |-- SELF_HOSTED_AGENT_OS.md
 |   |-- RELEASE_VALIDATION_CHECKLIST.md
 |   |-- ROADMAP.md
-|   `-- OPENAI_CODEX_OSS_APPLICATION.md
+|   |-- OPENAI_CODEX_OSS_APPLICATION.md
+|   |-- CODEX_FOR_OSS_APPLICATION.md
+|   |-- YANDEX_AGENT_TOOLS_FAKE_FIXTURES.md
+|   `-- TOPIC_APPROVAL_DEMO.md
 |-- tools/
 |   `-- public_safety_scan.py
 |-- tests/
@@ -115,9 +118,11 @@ The package demonstrates how self-hosted agents can interact with mail and calen
 - calendar list and create preview/confirm flows;
 - explicit protection for work-calendar writes;
 - Docker and compose examples for private deployments;
-- Hermes and OpenClaw integration guides.
+- Hermes and OpenClaw integration guides;
+- richer fake connector fixtures for mail, attachment metadata, search snippets, CalDAV-like events, and repeated-confirmation failures;
+- a topic-based approval demo for public-safe write gating.
 
-The implementation is intentionally public-safe. It contains no real credentials, phone numbers, private calendar names, Telegram IDs, private message bodies, or deployment logs. See [Yandex Agent Tools README](packages/yandex-agent-tools/README.md), [Hermes integration](docs/HERMES_YANDEX_AGENT_TOOLS.md), [OpenClaw integration](docs/OPENCLAW_YANDEX_AGENT_TOOLS.md), and [connector security policy](docs/AGENT_CONNECTOR_SECURITY_POLICY.md).
+The implementation is intentionally public-safe. It contains no real credentials, phone numbers, private calendar names, Telegram IDs, private message bodies, or deployment logs. See [Yandex Agent Tools README](packages/yandex-agent-tools/README.md), [fake fixture guide](docs/YANDEX_AGENT_TOOLS_FAKE_FIXTURES.md), [topic approval demo](docs/TOPIC_APPROVAL_DEMO.md), [Hermes integration](docs/HERMES_YANDEX_AGENT_TOOLS.md), [OpenClaw integration](docs/OPENCLAW_YANDEX_AGENT_TOOLS.md), [Codex for OSS notes](docs/CODEX_FOR_OSS_APPLICATION.md), and [connector security policy](docs/AGENT_CONNECTOR_SECURITY_POLICY.md).
 
 ## Public Safety Scan
 
