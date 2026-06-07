@@ -4,7 +4,7 @@ This page prepares public-safe application language for requesting OpenAI Codex 
 
 ## 1. Project Summary
 
-ServerDi Topic OS is an Apache-2.0 open-source playbook for safer self-hosted AI agent operations. It documents bounded agent passes, public-safe prompt templates, release validation, topic maps, and a lightweight scanner for public-disclosure risk markers.
+ServerDi Topic OS is an Apache-2.0 open-source playbook and reference toolkit for safer self-hosted AI agent operations. It documents bounded agent passes, public-safe prompt templates, release validation, topic maps, a public-disclosure safety scanner, and a small reference implementation for mail/calendar agent connectors.
 
 ## 2. Why This Repository Matters
 
@@ -18,11 +18,12 @@ The project helps open-source maintainers and small teams:
 - separate scout, patch, audit, validation, and release work;
 - use Telegram topic maps without publishing real IDs;
 - validate public docs before release;
-- keep private runtime details out of public repositories.
+- keep private runtime details out of public repositories;
+- study a concrete reference package for agent tool connectors with fake backends, tests, and explicit write confirmation gates.
 
 ## 4. How API Credits Would Be Used
 
-API credits would support public documentation improvements, scanner rule refinement, prompt-template review, example generation, and validation passes for open-source maintainer workflows. Credits would not be used for private runtime access or private data processing.
+API credits or ChatGPT Pro access would support public documentation improvements, scanner rule refinement, prompt-template review, example generation, and validation passes for open-source maintainer workflows. The active build track would also use Codex to implement and review public-safe reference connectors: fake-backed mail/calendar tools, preview-confirm write flows, Docker examples, and Hermes/OpenClaw integration guides. Credits would not be used for private runtime access or private data processing.
 
 ## 5. Safety and Privacy Stance
 

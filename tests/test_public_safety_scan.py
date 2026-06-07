@@ -115,6 +115,20 @@ class PublicSafetyScanTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("Status: OK", result.stdout)
+    def test_env_example_is_allowed_but_real_env_is_blocked(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".env.example").write_text(
+                "TOKEN=replace-with-token\n",
+                encoding="utf-8",
+            )
+            safe = run_scan(root)
+            self.assertEqual(safe.returncode, 0, safe.stdout + safe.stderr)
+
+            (root / ".env").write_text("TOKEN=replace-with-token\n", encoding="utf-8")
+            blocked = run_scan(root)
+            self.assertEqual(blocked.returncode, 1)
+            self.assertIn(".env file", blocked.stdout)
 
 
 if __name__ == "__main__":

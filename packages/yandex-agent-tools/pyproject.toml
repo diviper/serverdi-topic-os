@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "serverdi-yandex-agent-tools"
+version = "0.1.0"
+description = "Public-safe reference implementation for agent mail/calendar connectors"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "ServerDi Topic OS maintainers" }]
+dependencies = []
+
+[project.optional-dependencies]
+server = ["fastapi>=0.110", "uvicorn>=0.27"]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
