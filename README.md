@@ -98,6 +98,27 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
     `-- document-ingestion-pass.prompt.md
 ```
 
+## Reference Implementation: Yandex Agent Tools
+
+ServerDi Topic OS now includes a public-safe reference implementation for agent tool connectors:
+
+```text
+packages/yandex-agent-tools/
+```
+
+The package demonstrates how self-hosted agents can interact with mail and calendar systems without giving every agent direct secret access or unrestricted write authority. It includes:
+
+- a sanitized `work` / `personal` account registry using placeholder addresses only;
+- fake IMAP/SMTP/CalDAV-like backends for tests;
+- mail list/search/read interfaces;
+- mail send and reply preview/confirm flows;
+- calendar list and create preview/confirm flows;
+- explicit protection for work-calendar writes;
+- Docker and compose examples for private deployments;
+- Hermes and OpenClaw integration guides.
+
+The implementation is intentionally public-safe. It contains no real credentials, phone numbers, private calendar names, Telegram IDs, private message bodies, or deployment logs. See [Yandex Agent Tools README](packages/yandex-agent-tools/README.md), [Hermes integration](docs/HERMES_YANDEX_AGENT_TOOLS.md), [OpenClaw integration](docs/OPENCLAW_YANDEX_AGENT_TOOLS.md), and [connector security policy](docs/AGENT_CONNECTOR_SECURITY_POLICY.md).
+
 ## Public Safety Scan
 
 This repository includes a dependency-free Python scanner for catching public-disclosure risk markers before commit or release. It is meant to catch likely real values, private paths, and unsafe literals while allowing maintainers to review documentation-only safety warnings.

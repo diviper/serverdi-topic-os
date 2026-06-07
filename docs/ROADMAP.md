@@ -10,6 +10,19 @@ This roadmap tracks public-safe work for ServerDi Topic OS. It intentionally exc
 - Public-safe topic map examples for solo maintainers, small teams, and documentation-heavy workspaces.
 - Project maintenance pack with changelog, roadmap, OpenAI Codex OSS application notes, and local-only journal ignore support.
 
+## Active Build Track: Agent Tool Connectors
+
+This track turns the playbook into a small public-safe reference implementation. The goal is not to publish private runtime automation. The goal is to show reusable OSS patterns for bounded agent tools, secret isolation, and human confirmation gates.
+
+- Add a public-safe Yandex Agent Tools reference package under `packages/yandex-agent-tools/`.
+- Keep all fixtures fake: `work@example.com`, `personal@example.com`, `Work Calendar`, and `Personal Calendar`.
+- Demonstrate mail list/search/read plus send/reply preview-confirm flows.
+- Demonstrate calendar list plus create preview-confirm flows.
+- Require additional explicit confirmation for work-calendar writes.
+- Add Docker and compose examples for private self-hosted deployment.
+- Add Hermes and OpenClaw integration guides.
+- Run package tests and the public-safety scanner in CI.
+
 ## Near-Term
 
 - Add more focused prompt templates for release review, stale context cleanup, and incident follow-up.
