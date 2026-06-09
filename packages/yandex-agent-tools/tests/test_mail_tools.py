@@ -1,4 +1,5 @@
-from yandex_agent_tools.mail import MailTool
+from yandex_agent_tools.accounts import ContactConfig, ContactRegistry
+from yandex_agent_tools.mail import FakeMailBackend, MailTool
 
 
 def test_mail_list_search_and_read_use_fake_backend():
@@ -47,3 +48,39 @@ def test_mail_reply_preview_sets_re_subject_and_in_reply_to():
 
     assert preview["preview"]["subject"] == "Re: Reference implementation review"
     assert preview["preview"]["in_reply_to"] == "<w1@example.org>"
+
+
+def test_mail_send_preview_resolves_account_and_contact_aliases():
+    contacts = ContactRegistry(
+        {"teammate_alpha": ContactConfig("teammate_alpha", "teammate.alpha@example.com", "Teammate Alpha")}
+    )
+    tool = MailTool(contact_registry=contacts)
+
+    preview = tool.send_preview("personal", ["work", "teammate_alpha"], "Hello", "Draft body")
+
+    assert preview["preview"]["to"] == ["work@example.com", "teammate.alpha@example.com"]
+    assert preview["recipient_aliases_resolved"] == ["work", "teammate_alpha"]
+
+
+def test_mail_headers_decode_mime_words_before_returning_headers():
+    backend = FakeMailBackend(
+        messages={
+            "personal": [
+                {
+                    "id": "p2",
+                    "from": "=?utf-8?b?QWxleGV5?= <sender@example.org>",
+                    "to": ["personal@example.com"],
+                    "subject": "=?utf-8?b?0J/RgNC40LLQtdGC?=",
+                    "date": "2026-01-05T10:00:00Z",
+                    "text_body": "Public-safe body.",
+                    "message_id": "<p2@example.org>",
+                }
+            ]
+        }
+    )
+    tool = MailTool(backend=backend)
+
+    listed = tool.list("personal")
+
+    assert listed["messages"][0]["from"] == "Alexey <sender@example.org>"
+    assert listed["messages"][0]["subject"] == "Привет"

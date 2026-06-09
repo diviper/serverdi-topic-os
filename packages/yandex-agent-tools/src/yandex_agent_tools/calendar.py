@@ -14,8 +14,13 @@ class FakeCalendarBackend:
 
     events: dict[str, list[dict[str, object]]] = field(default_factory=dict)
 
-    def list_events(self, account_id: str) -> list[dict[str, object]]:
-        return list(self.events.get(account_id, []))
+    def list_events(self, account_id: str, start: str | None = None, end: str | None = None) -> list[dict[str, object]]:
+        events = list(self.events.get(account_id, []))
+        if not start and not end:
+            return events
+        start_dt = _parse_datetime(start) if start else None
+        end_dt = _parse_datetime(end) if end else None
+        return [event for event in events if _event_overlaps(event, start_dt=start_dt, end_dt=end_dt)]
 
     def create_event(self, account_id: str, event: dict[str, object]) -> dict[str, object]:
         event = dict(event)
@@ -23,6 +28,31 @@ class FakeCalendarBackend:
         event.setdefault("created_at", datetime.now(timezone.utc).isoformat())
         self.events.setdefault(account_id, []).append(event)
         return {"status": "created", "account_id": account_id, "event": event}
+
+
+def _parse_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    normalized = value.replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
+def _event_overlaps(event: dict[str, object], *, start_dt: datetime | None, end_dt: datetime | None) -> bool:
+    event_start = _parse_datetime(str(event.get("start", "")))
+    event_end = _parse_datetime(str(event.get("end", ""))) or event_start
+    if event_start is None:
+        return True
+    if start_dt and event_end and event_end < start_dt:
+        return False
+    if end_dt and event_start > end_dt:
+        return False
+    return True
 
 
 def default_fake_calendar_backend() -> FakeCalendarBackend:
@@ -63,12 +93,12 @@ class CalendarTool:
         self.backend = backend or default_fake_calendar_backend()
         self.confirmations = confirmations or ConfirmationStore()
 
-    def list(self, account_id: str) -> dict[str, object]:
+    def list(self, account_id: str, start: str | None = None, end: str | None = None) -> dict[str, object]:
         account = self.registry.get(account_id)
         return {
             "account_id": account_id,
             "calendar_name": account.calendar_name,
-            "events": self.backend.list_events(account_id),
+            "events": self.backend.list_events(account_id, start=start, end=end),
         }
 
     def create_preview(

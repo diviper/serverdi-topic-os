@@ -4,6 +4,7 @@
 
 - Added project maintenance files for public release tracking, roadmap planning, and OpenAI Codex for Open Source application preparation.
 - Added local-only journal ignore support for maintainer notes that must not be committed.
+- Added public-safe Yandex Agent Tools contact alias support, MIME header decoding, calendar range filtering, and a Hermes/Telegram operator guide.
 
 ## v0.4.0 — Public-safe topic map examples
 

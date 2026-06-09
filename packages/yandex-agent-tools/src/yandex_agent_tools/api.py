@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import os
 
-from .accounts import AccountRegistry
+from .accounts import AccountRegistry, ContactRegistry
 from .calendar import CalendarTool
 from .mail import MailTool
 
 registry = AccountRegistry()
-mail_tool = MailTool(registry=registry)
+contact_registry = ContactRegistry()
+mail_tool = MailTool(registry=registry, contact_registry=contact_registry)
 calendar_tool = CalendarTool(registry=registry)
 
 try:
@@ -46,6 +47,11 @@ else:
         confirmation_id: str
         explicit_confirm_text: str | None = None
 
+    class CalendarListRequest(BaseModel):
+        account_id: str
+        start: str | None = None
+        end: str | None = None
+
     class CalendarCreatePreviewRequest(BaseModel):
         account_id: str
         summary: str
@@ -61,6 +67,10 @@ else:
     @app.get("/accounts")
     def accounts(_: None = Depends(require_token)) -> list[dict[str, object]]:
         return registry.list_public()
+
+    @app.get("/contacts")
+    def contacts(_: None = Depends(require_token)) -> list[dict[str, object]]:
+        return contact_registry.list_public()
 
     @app.post("/tools/mail/list")
     def mail_list(request: MailListRequest, _: None = Depends(require_token)) -> dict[str, object]:
@@ -91,8 +101,8 @@ else:
         return mail_tool.reply_confirm(request.confirmation_id)
 
     @app.post("/tools/calendar/list")
-    def calendar_list(request: MailListRequest, _: None = Depends(require_token)) -> dict[str, object]:
-        return calendar_tool.list(request.account_id)
+    def calendar_list(request: CalendarListRequest, _: None = Depends(require_token)) -> dict[str, object]:
+        return calendar_tool.list(request.account_id, start=request.start, end=request.end)
 
     @app.post("/tools/calendar/create/preview")
     def calendar_create_preview(

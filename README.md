@@ -83,6 +83,7 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
 |   |-- ROADMAP.md
 |   |-- OPENAI_CODEX_OSS_APPLICATION.md
 |   |-- AI_ASSISTED_MAINTENANCE.md
+|   |-- HERMES_TELEGRAM_OPERATOR_GUIDE.md
 |   |-- YANDEX_AGENT_TOOLS_FAKE_FIXTURES.md
 |   `-- TOPIC_APPROVAL_DEMO.md
 |-- tools/
@@ -114,15 +115,18 @@ The package demonstrates how self-hosted agents can interact with mail and calen
 - a sanitized `work` / `personal` account registry using placeholder addresses only;
 - fake IMAP/SMTP/CalDAV-like backends for tests;
 - mail list/search/read interfaces;
+- contact aliases with alias-only public listing;
+- MIME-decoded mail headers for readable agent summaries;
 - mail send and reply preview/confirm flows;
 - calendar list and create preview/confirm flows;
+- calendar list range filtering;
 - explicit protection for work-calendar writes;
 - Docker and compose examples for private deployments;
 - Hermes and OpenClaw integration guides;
 - richer fake connector fixtures for mail, attachment metadata, search snippets, CalDAV-like events, and repeated-confirmation failures;
 - a topic-based approval demo for public-safe write gating.
 
-The implementation is intentionally public-safe. It contains no real credentials, phone numbers, private calendar names, Telegram IDs, private message bodies, or deployment logs. See [Yandex Agent Tools README](packages/yandex-agent-tools/README.md), [fake fixture guide](docs/YANDEX_AGENT_TOOLS_FAKE_FIXTURES.md), [topic approval demo](docs/TOPIC_APPROVAL_DEMO.md), [Hermes integration](docs/HERMES_YANDEX_AGENT_TOOLS.md), [OpenClaw integration](docs/OPENCLAW_YANDEX_AGENT_TOOLS.md), [AI-assisted maintenance notes](docs/AI_ASSISTED_MAINTENANCE.md), and [connector security policy](docs/AGENT_CONNECTOR_SECURITY_POLICY.md).
+The implementation is intentionally public-safe. It contains no real credentials, phone numbers, private calendar names, Telegram IDs, private message bodies, or deployment logs. See [Yandex Agent Tools README](packages/yandex-agent-tools/README.md), [fake fixture guide](docs/YANDEX_AGENT_TOOLS_FAKE_FIXTURES.md), [topic approval demo](docs/TOPIC_APPROVAL_DEMO.md), [Hermes integration](docs/HERMES_YANDEX_AGENT_TOOLS.md), [Hermes/Telegram operator guide](docs/HERMES_TELEGRAM_OPERATOR_GUIDE.md), [OpenClaw integration](docs/OPENCLAW_YANDEX_AGENT_TOOLS.md), [AI-assisted maintenance notes](docs/AI_ASSISTED_MAINTENANCE.md), and [connector security policy](docs/AGENT_CONNECTOR_SECURITY_POLICY.md).
 
 ## Public Safety Scan
 

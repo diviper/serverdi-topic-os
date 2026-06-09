@@ -10,6 +10,16 @@ def test_calendar_list_uses_fake_backend():
     assert result["events"][0]["summary"] == "Public-safe personal demo"
 
 
+def test_calendar_list_filters_by_requested_time_range():
+    tool = CalendarTool()
+
+    inside = tool.list("personal", start="2026-01-03T00:00:00Z", end="2026-01-03T23:59:59Z")
+    outside = tool.list("personal", start="2026-02-01T00:00:00Z", end="2026-02-02T00:00:00Z")
+
+    assert [event["uid"] for event in inside["events"]] == ["personal-demo-1"]
+    assert outside["events"] == []
+
+
 def test_personal_calendar_create_preview_and_confirm():
     tool = CalendarTool()
 
