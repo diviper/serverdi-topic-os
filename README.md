@@ -118,7 +118,7 @@ The package demonstrates how self-hosted agents can interact with mail and calen
 - contact aliases with alias-only public listing;
 - MIME-decoded mail headers for readable agent summaries;
 - mail send and reply preview/confirm flows;
-- calendar list and create preview/confirm flows;
+- calendar list and create preview/confirm flows with contact-alias attendee resolution;
 - calendar list range filtering;
 - explicit protection for work-calendar writes;
 - Docker and compose examples for private deployments;

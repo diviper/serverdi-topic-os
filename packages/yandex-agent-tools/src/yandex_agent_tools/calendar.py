@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from .accounts import AccountRegistry
+from .accounts import AccountRegistry, ContactRegistry, normalize_alias
 from .safety import ConfirmationStore, has_explicit_confirmation
 
 
@@ -86,10 +86,12 @@ class CalendarTool:
     def __init__(
         self,
         registry: AccountRegistry | None = None,
+        contact_registry: ContactRegistry | None = None,
         backend: FakeCalendarBackend | None = None,
         confirmations: ConfirmationStore | None = None,
     ) -> None:
         self.registry = registry or AccountRegistry()
+        self.contact_registry = contact_registry or ContactRegistry()
         self.backend = backend or default_fake_calendar_backend()
         self.confirmations = confirmations or ConfirmationStore()
 
@@ -108,9 +110,11 @@ class CalendarTool:
         start: str,
         end: str,
         description: str = "",
+        attendees: list[str] | None = None,
         explicit_confirm_text: str | None = None,
     ) -> dict[str, object]:
         account = self.registry.get(account_id)
+        resolved_attendees, attendee_aliases = self._resolve_attendees(attendees or [])
         work_confirm_required = account.calendar_writes_require_explicit_confirm and not has_explicit_confirmation(
             explicit_confirm_text
         )
@@ -121,6 +125,7 @@ class CalendarTool:
             "description": description,
             "start": start,
             "end": end,
+            "attendees": resolved_attendees,
         }
         confirmation_id = self.confirmations.create(
             "calendar_create",
@@ -132,7 +137,32 @@ class CalendarTool:
             "requires_explicit_work_calendar_confirmation": work_confirm_required,
             "confirmation_id": confirmation_id,
             "preview": event,
+            "attendee_aliases_resolved": attendee_aliases,
         }
+
+    def _resolve_attendees(self, attendees: list[str]) -> tuple[list[str], list[str]]:
+        """Resolve configured private contact aliases for calendar invitations.
+
+        Direct email addresses are preserved. Configured contact aliases are
+        converted to private emails for the backend while returning a separate
+        alias list so Telegram/runtime wrappers can report what was resolved
+        without exposing raw addresses.
+        """
+
+        resolved: list[str] = []
+        aliases: list[str] = []
+        for raw_value in attendees:
+            value = str(raw_value).strip()
+            if not value:
+                continue
+            alias = normalize_alias(value)
+            contact = self.contact_registry.maybe_get(alias)
+            if contact:
+                resolved.append(contact.email)
+                aliases.append(alias)
+            else:
+                resolved.append(value)
+        return resolved, aliases
 
     def create_confirm(self, confirmation_id: str, explicit_confirm_text: str | None = None) -> dict[str, object]:
         action = self.confirmations.pop(confirmation_id)

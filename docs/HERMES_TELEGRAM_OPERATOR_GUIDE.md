@@ -57,6 +57,32 @@ Public list output should look like this:
 
 It should not include `teammate.alpha@example.com`.
 
+### Telegram natural-language contact creation
+
+A Telegram runtime should expose a first-class contact-alias write action, for example `yandex_contacts action=add` or `contact_alias_add`. Do not infer from `POST /contacts`: the reference `/contacts` endpoint is intentionally read-only list output.
+
+Recommended routing contract:
+
+```text
+User says: add contact <name> <email>
+User says: add the technical director <name> <email>
+User says: remember <name> for calendar invites
+User says: добавь контакт <имя> <email>
+User says: добавь техдира <имя> <email>
+User says: запомни <имя>, чтобы звать в календарь
+```
+
+The agent should:
+
+1. normalize a short alias such as `teammate_alpha` or `tech_director`;
+2. validate the provided email privately;
+3. write only private runtime contact configuration;
+4. return alias/display/kind/has_email only;
+5. reload the private connector if the deployment requires it;
+6. never print the raw email back into Telegram.
+
+This flow is for calendar attendee UX first. After the alias exists, calendar tools should pass the alias in `attendees` instead of asking the user to paste the email again.
+
 ## Mail flow
 
 Read-only example:
@@ -91,6 +117,20 @@ Calendar listing should accept a requested time range and pass it through to the
 ```
 
 Work-calendar writes are higher risk because events may be visible to teammates. Keep them behind an explicit owner confirmation phrase in private deployments.
+
+Calendar create previews may include `attendees`. Runtimes should resolve configured contact aliases before sending the event to the private backend:
+
+```json
+{
+  "account_id": "work",
+  "summary": "Project sync",
+  "start": "2026-01-04T10:00:00Z",
+  "end": "2026-01-04T10:30:00Z",
+  "attendees": ["teammate_alpha"]
+}
+```
+
+A safe preview response can include `attendee_aliases_resolved: ["teammate_alpha"]` while redacting raw emails in Telegram-visible output.
 
 ## Public-safety checklist
 
