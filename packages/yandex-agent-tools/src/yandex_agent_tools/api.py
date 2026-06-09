@@ -9,7 +9,7 @@ from .mail import MailTool
 registry = AccountRegistry()
 contact_registry = ContactRegistry()
 mail_tool = MailTool(registry=registry, contact_registry=contact_registry)
-calendar_tool = CalendarTool(registry=registry)
+calendar_tool = CalendarTool(registry=registry, contact_registry=contact_registry)
 
 try:
     from fastapi import Depends, FastAPI, Header, HTTPException
@@ -58,6 +58,7 @@ else:
         start: str
         end: str
         description: str = ""
+        attendees: list[str] = []
         explicit_confirm_text: str | None = None
 
     @app.get("/health")
@@ -115,6 +116,7 @@ else:
             request.start,
             request.end,
             request.description,
+            request.attendees,
             request.explicit_confirm_text,
         )
 

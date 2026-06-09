@@ -49,7 +49,7 @@ Work Calendar
 Personal Calendar
 ```
 
-Contact aliases are optional. List responses expose alias metadata only and do not return raw contact emails.
+Contact aliases are optional. List responses expose alias metadata only and do not return raw contact emails. Private Telegram/Hermes deployments should expose contact creation as a separate tool/action (for example `yandex_contacts action=add`) instead of trying to write to the read-only `/contacts` endpoint. Calendar create previews can use those aliases in `attendees` so users can say “invite teammate_alpha” without pasting an email into chat.
 
 ## Tool flow
 

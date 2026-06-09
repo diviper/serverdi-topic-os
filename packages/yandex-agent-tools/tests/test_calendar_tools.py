@@ -1,3 +1,4 @@
+from yandex_agent_tools.accounts import ContactConfig, ContactRegistry
 from yandex_agent_tools.calendar import CalendarTool
 
 
@@ -36,6 +37,31 @@ def test_personal_calendar_create_preview_and_confirm():
     assert preview["requires_explicit_work_calendar_confirmation"] is False
     assert result["status"] == "created"
     assert result["event"]["calendar_name"] == "Personal Calendar"
+
+
+def test_calendar_create_preview_resolves_contact_alias_attendees():
+    contacts = ContactRegistry(
+        {
+            "teammate_alpha": ContactConfig(
+                alias="teammate_alpha",
+                email="teammate.alpha@example.com",
+                display_name="Teammate Alpha",
+                kind="colleague",
+            )
+        }
+    )
+    tool = CalendarTool(contact_registry=contacts)
+
+    preview = tool.create_preview(
+        "personal",
+        "Demo with attendee",
+        "2026-01-04T10:00:00Z",
+        "2026-01-04T10:30:00Z",
+        attendees=["teammate-alpha", "direct@example.org"],
+    )
+
+    assert preview["attendee_aliases_resolved"] == ["teammate_alpha"]
+    assert preview["preview"]["attendees"] == ["teammate.alpha@example.com", "direct@example.org"]
 
 
 def test_work_calendar_create_requires_explicit_confirm_on_confirm_step():
