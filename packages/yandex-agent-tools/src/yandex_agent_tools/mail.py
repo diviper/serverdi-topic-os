@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from email.header import decode_header, make_header
 from email.utils import formataddr
 
-from .accounts import AccountRegistry
+from .accounts import AccountRegistry, ContactRegistry, normalize_alias
 from .safety import ConfirmationStore
 
 
@@ -21,17 +22,32 @@ class FakeMailBackend:
         query_lower = query.lower()
         found = []
         for message in self.messages.get(account_id, []):
-            haystack = " ".join(str(message.get(key, "")) for key in ["from", "subject", "text_body", "snippet"]).lower()
+            headers = self._headers_only(message, include_snippet=True)
+            haystack = " ".join(str(headers.get(key, "")) for key in ["from", "subject", "snippet"]).lower()
+            haystack += " " + str(message.get("text_body", "")).lower()
             if query_lower in haystack:
-                found.append(self._headers_only(message, include_snippet=True))
+                found.append(headers)
         return found[:limit]
 
-    @staticmethod
-    def _headers_only(message: dict[str, object], include_snippet: bool = False) -> dict[str, object]:
+    @classmethod
+    def _headers_only(cls, message: dict[str, object], include_snippet: bool = False) -> dict[str, object]:
         allowed = {"id", "from", "to", "subject", "date", "message_id", "attachments", "html_body_present"}
         if include_snippet:
             allowed.add("snippet")
-        return {key: value for key, value in message.items() if key in allowed}
+        headers = {key: value for key, value in message.items() if key in allowed}
+        for key in ["from", "subject", "snippet"]:
+            if key in headers:
+                headers[key] = cls._decode_mime_header(str(headers[key]))
+        if "to" in headers and isinstance(headers["to"], list):
+            headers["to"] = [cls._decode_mime_header(str(value)) for value in headers["to"]]
+        return headers
+
+    @staticmethod
+    def _decode_mime_header(value: str) -> str:
+        try:
+            return str(make_header(decode_header(value)))
+        except Exception:
+            return value
 
     def read_message(self, account_id: str, message_id: str) -> dict[str, object]:
         for message in self.messages.get(account_id, []):
@@ -79,10 +95,12 @@ class MailTool:
     def __init__(
         self,
         registry: AccountRegistry | None = None,
+        contact_registry: ContactRegistry | None = None,
         backend: FakeMailBackend | None = None,
         confirmations: ConfirmationStore | None = None,
     ) -> None:
         self.registry = registry or AccountRegistry()
+        self.contact_registry = contact_registry or ContactRegistry()
         self.backend = backend or default_fake_mail_backend()
         self.confirmations = confirmations or ConfirmationStore()
 
@@ -100,17 +118,23 @@ class MailTool:
 
     def send_preview(self, account_id: str, to: list[str], subject: str, body_text: str) -> dict[str, object]:
         account = self.registry.get(account_id)
+        recipients, aliases = self._resolve_recipients(to)
         body_with_signature = self._append_signature(body_text, account.mail_signature_text)
         payload = {
             "account_id": account_id,
             "from": formataddr((account.mail_display_name, account.mail_address)),
-            "to": list(to),
+            "to": recipients,
             "subject": subject,
             "body_text": body_with_signature,
             "signature_applied": bool(account.mail_signature_text),
         }
         confirmation_id = self.confirmations.create("mail_send", payload)
-        return {"requires_confirmation": True, "confirmation_id": confirmation_id, "preview": payload}
+        return {
+            "requires_confirmation": True,
+            "confirmation_id": confirmation_id,
+            "preview": payload,
+            "recipient_aliases_resolved": aliases,
+        }
 
     def send_confirm(self, confirmation_id: str) -> dict[str, object]:
         action = self.confirmations.pop(confirmation_id)
@@ -120,7 +144,7 @@ class MailTool:
 
     def reply_preview(self, account_id: str, message_id: str, body_text: str) -> dict[str, object]:
         original = self.backend.read_message(account_id, message_id)
-        subject = str(original.get("subject", ""))
+        subject = FakeMailBackend._decode_mime_header(str(original.get("subject", "")))
         if not subject.lower().startswith("re:"):
             subject = f"Re: {subject}"
         preview = self.send_preview(account_id, [str(original.get("from"))], subject, body_text)
@@ -129,6 +153,27 @@ class MailTool:
 
     def reply_confirm(self, confirmation_id: str) -> dict[str, object]:
         return self.send_confirm(confirmation_id)
+
+    def _resolve_recipients(self, recipients: list[str]) -> tuple[list[str], list[str]]:
+        resolved: list[str] = []
+        aliases: list[str] = []
+        for raw in recipients:
+            value = str(raw).strip()
+            if not value:
+                continue
+            alias = normalize_alias(value)
+            account = self.registry.maybe_get(alias)
+            if account is not None:
+                resolved.append(account.mail_address)
+                aliases.append(alias)
+                continue
+            contact = self.contact_registry.maybe_get(alias)
+            if contact is not None:
+                resolved.append(contact.email)
+                aliases.append(alias)
+                continue
+            resolved.append(value)
+        return resolved, aliases
 
     @staticmethod
     def _append_signature(body_text: str, signature_text: str) -> str:

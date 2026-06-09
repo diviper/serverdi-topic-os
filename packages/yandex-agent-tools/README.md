@@ -9,8 +9,11 @@ This package intentionally uses fake in-memory backends in tests. It does not in
 Self-hosted agents need productive tools, but mail and calendar writes are risky. This reference package demonstrates a safer pattern:
 
 - account registry with `work` and `personal` accounts;
+- private contact aliases that expose only alias/display metadata in lists;
 - sanitized placeholder configuration;
 - read/list/search interfaces separated from write flows;
+- decoded MIME mail headers for Telegram-readable summaries;
+- calendar list range filters;
 - preview/confirm before sending mail or creating events;
 - extra explicit confirmation for work-calendar writes;
 - fake backends for tests so CI never touches real networks.
@@ -41,9 +44,12 @@ The public configuration example uses only placeholders:
 ```text
 work@example.com
 personal@example.com
+teammate.alpha@example.com
 Work Calendar
 Personal Calendar
 ```
+
+Contact aliases are optional. List responses expose alias metadata only and do not return raw contact emails.
 
 ## Tool flow
 
