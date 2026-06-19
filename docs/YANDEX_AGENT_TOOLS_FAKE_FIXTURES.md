@@ -11,6 +11,7 @@ The goal is to let contributors test agent behavior without real IMAP, SMTP, Cal
 - Return full bodies only from explicit read fixtures.
 - Return snippets or headers from list/search fixtures.
 - Attachments are metadata only: filename, content type, size.
+- Outgoing attachment preview tests may use tiny fake byte strings, but preview output must still contain metadata only.
 - CalDAV examples use synthetic `.ics` text and fake hrefs.
 - Failed confirmation fixtures document one-time confirmation behavior.
 

@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-- Added project maintenance files for public release tracking, roadmap planning, and OpenAI Codex for Open Source application preparation.
+- Added public-safe outgoing Yandex mail attachment preview/confirm support with metadata-only previews, bounded fake payload handling, multiple recipient fields (`to`/`cc`/`bcc`), comma/semicolon recipient normalization, header-injection guards, preview/confirm payload isolation, and tests for invalid/oversize input.
+- Hardened attachment validation for filenames, MIME content types, per-file size, and total attachment size.
+- Added a public-safe future plan for inbound mail attachment delivery to owner-controlled chat channels.
+- Reviewed current public docs, renamed application-specific maintenance notes to neutral maintainer docs, and kept maintainer journal notes in ignored local files only.
+- Added project maintenance files for public release tracking, roadmap planning, maintainer support notes, and local-only journal handling.
 - Added local-only journal ignore support for maintainer notes that must not be committed.
 - Added public-safe Yandex Agent Tools contact alias support, calendar attendee alias resolution, MIME header decoding, calendar range filtering, and a Hermes/Telegram operator guide with natural-language contact routing guidance.
 

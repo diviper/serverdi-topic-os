@@ -44,6 +44,8 @@ Hermes must never turn a user request into a write action directly. The safe flo
 
 Work-calendar writes require an additional explicit owner phrase because such calendars may be shared with teammates.
 
+Mail send/reply previews may accept `to`/`cc`/`bcc`, including comma/semicolon-separated strings from chat UIs, but Hermes must show the normalized final recipient fields before confirmation. Previews may also accept outgoing attachments, but Hermes should show only attachment metadata to the owner. Do not print or log raw bytes/base64. A private deployment that bridges uploaded chat files into mail should validate the file path in the private adapter, convert it to a bounded payload for the connector, and keep the public docs placeholder-only.
+
 Contact aliases are a separate Hermes tool boundary, not a backend `POST /contacts` operation. Route natural-language requests such as “add contact”, “добавь контакт”, “добавь техдира”, or “remember this email for calendar invites” to `yat_contacts_add_preview` / `yat_contacts_add`. The public `/contacts` endpoint remains read-only and should expose only alias/display/kind/has_email metadata. Calendar create previews should accept aliases in `attendees` and report `attendee_aliases_resolved` so Telegram can say which alias was used without printing raw emails.
 
 ## Public-safe local check
