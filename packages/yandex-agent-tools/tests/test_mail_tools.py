@@ -84,3 +84,186 @@ def test_mail_headers_decode_mime_words_before_returning_headers():
 
     assert listed["messages"][0]["from"] == "Alexey <sender@example.org>"
     assert listed["messages"][0]["subject"] == "Привет"
+
+
+def test_mail_send_preview_accepts_attachment_metadata_without_binary_inline():
+    import base64
+
+    tool = MailTool()
+
+    preview = tool.send_preview(
+        "personal",
+        ["reader@example.org"],
+        "Attachment preview",
+        "Draft body",
+        attachments=[
+            {
+                "filename": "report.pdf",
+                "content_type": "application/pdf",
+                "content_base64": base64.b64encode(b"fake-pdf-bytes").decode("ascii"),
+            }
+        ],
+    )
+
+    assert preview["requires_confirmation"] is True
+    assert preview["preview"]["attachments"] == [
+        {"filename": "report.pdf", "content_type": "application/pdf", "size": 14}
+    ]
+    assert "fake-pdf-bytes" not in repr(preview)
+    assert "ZmFrZS1wZGYtYnl0ZXM" not in repr(preview)
+
+
+def test_mail_send_confirm_sends_previewed_attachments_once():
+    import base64
+
+    tool = MailTool()
+
+    preview = tool.send_preview(
+        "personal",
+        ["reader@example.org"],
+        "Attachment send",
+        "Draft body",
+        attachments=[
+            {
+                "filename": "report.pdf",
+                "content_type": "application/pdf",
+                "content_base64": base64.b64encode(b"fake-pdf-bytes").decode("ascii"),
+            }
+        ],
+    )
+    result = tool.send_confirm(preview["confirmation_id"])
+
+    assert result == {
+        "status": "sent",
+        "saved_to_sent": True,
+        "sent_count": 1,
+        "attachments": [{"filename": "report.pdf", "content_type": "application/pdf", "size": 14}],
+    }
+    assert tool.backend.sent[0]["attachments"][0]["content_bytes"] == b"fake-pdf-bytes"
+    try:
+        tool.send_confirm(preview["confirmation_id"])
+    except KeyError as exc:
+        assert "Unknown or already used" in str(exc)
+    else:
+        raise AssertionError("confirmation_id was reused")
+
+
+def test_mail_send_preview_rejects_invalid_attachment_base64():
+    tool = MailTool()
+
+    try:
+        tool.send_preview(
+            "personal",
+            ["reader@example.org"],
+            "Bad attachment",
+            "Draft body",
+            attachments=[{"filename": "bad.txt", "content_base64": "not base64!!!"}],
+        )
+    except ValueError as exc:
+        assert "base64" in str(exc)
+    else:
+        raise AssertionError("invalid base64 accepted")
+    assert tool.backend.sent == []
+
+
+def test_mail_send_preview_sanitizes_attachment_filename():
+    import base64
+
+    tool = MailTool()
+
+    preview = tool.send_preview(
+        "personal",
+        ["reader@example.org"],
+        "Safe filename",
+        "Draft body",
+        attachments=[
+            {
+                "filename": "../private/report.pdf",
+                "content_base64": base64.b64encode(b"fake-pdf-bytes").decode("ascii"),
+            }
+        ],
+    )
+
+    assert preview["preview"]["attachments"] == [
+        {"filename": "report.pdf", "content_type": "application/pdf", "size": 14}
+    ]
+    assert "private" not in repr(preview)
+
+
+
+def test_mail_send_preview_rejects_invalid_attachment_content_type():
+    import base64
+
+    tool = MailTool()
+
+    try:
+        tool.send_preview(
+            "personal",
+            ["reader@example.org"],
+            "Bad content type",
+            "Draft body",
+            attachments=[
+                {
+                    "filename": "report.pdf",
+                    "content_type": "application/pdf\r\nX-Bad: 1",
+                    "content_base64": base64.b64encode(b"fake-pdf-bytes").decode("ascii"),
+                }
+            ],
+        )
+    except ValueError as exc:
+        assert "content_type" in str(exc)
+    else:
+        raise AssertionError("invalid content_type accepted")
+    assert tool.backend.sent == []
+
+
+def test_mail_send_preview_rejects_total_attachment_size(monkeypatch):
+    import base64
+
+    tool = MailTool()
+    monkeypatch.setattr(MailTool, "MAX_ATTACHMENT_BYTES", 10)
+    monkeypatch.setattr(MailTool, "MAX_TOTAL_ATTACHMENT_BYTES", 10)
+
+    try:
+        tool.send_preview(
+            "personal",
+            ["reader@example.org"],
+            "Too much total",
+            "Draft body",
+            attachments=[
+                {"filename": "one.txt", "content_base64": base64.b64encode(b"123456").decode("ascii")},
+                {"filename": "two.txt", "content_base64": base64.b64encode(b"123456").decode("ascii")},
+            ],
+        )
+    except ValueError as exc:
+        assert "total" in str(exc)
+    else:
+        raise AssertionError("oversize attachment total accepted")
+    assert tool.backend.sent == []
+
+
+def test_mail_send_preview_rejects_oversize_attachment(monkeypatch):
+    import base64
+
+    tool = MailTool()
+    monkeypatch.setattr(MailTool, "MAX_ATTACHMENT_BYTES", 4)
+
+    try:
+        tool.send_preview(
+            "personal",
+            ["reader@example.org"],
+            "Big attachment",
+            "Draft body",
+            attachments=[
+                {
+                    "filename": "big.txt",
+                    "content_type": "text/plain",
+                    "content_base64": base64.b64encode(b"12345").decode("ascii"),
+                }
+            ],
+        )
+    except ValueError as exc:
+        assert "too large" in str(exc)
+    else:
+        raise AssertionError("oversize attachment accepted")
+    assert tool.backend.sent == []

@@ -13,7 +13,7 @@ calendar_tool = CalendarTool(registry=registry, contact_registry=contact_registr
 
 try:
     from fastapi import Depends, FastAPI, Header, HTTPException
-    from pydantic import BaseModel
+    from pydantic import BaseModel, Field
 except ImportError:  # pragma: no cover - allows importing package without server extras
     FastAPI = None  # type: ignore[assignment]
 else:
@@ -37,11 +37,29 @@ else:
         account_id: str
         message_id: str
 
+    class MailAttachmentInput(BaseModel):
+        filename: str
+        content_type: str = "application/octet-stream"
+        content_base64: str
+
     class MailSendPreviewRequest(BaseModel):
         account_id: str
         to: list[str]
         subject: str
         body_text: str
+        attachments: list[MailAttachmentInput] = Field(default_factory=list)
+
+    class MailReplyPreviewRequest(BaseModel):
+        account_id: str
+        message_id: str
+        body_text: str
+        attachments: list[MailAttachmentInput] = Field(default_factory=list)
+
+    def model_to_dict(model: BaseModel) -> dict[str, object]:
+        dump = getattr(model, "model_dump", None)
+        if dump is not None:
+            return dump()
+        return model.dict()
 
     class ConfirmRequest(BaseModel):
         confirmation_id: str
@@ -87,15 +105,26 @@ else:
 
     @app.post("/tools/mail/send/preview")
     def mail_send_preview(request: MailSendPreviewRequest, _: None = Depends(require_token)) -> dict[str, object]:
-        return mail_tool.send_preview(request.account_id, request.to, request.subject, request.body_text)
+        return mail_tool.send_preview(
+            request.account_id,
+            request.to,
+            request.subject,
+            request.body_text,
+            attachments=[model_to_dict(item) for item in request.attachments],
+        )
 
     @app.post("/tools/mail/send/confirm")
     def mail_send_confirm(request: ConfirmRequest, _: None = Depends(require_token)) -> dict[str, object]:
         return mail_tool.send_confirm(request.confirmation_id)
 
     @app.post("/tools/mail/reply/preview")
-    def mail_reply_preview(request: MailReadRequest, _: None = Depends(require_token)) -> dict[str, object]:
-        return mail_tool.reply_preview(request.account_id, request.message_id, "Draft reply body")
+    def mail_reply_preview(request: MailReplyPreviewRequest, _: None = Depends(require_token)) -> dict[str, object]:
+        return mail_tool.reply_preview(
+            request.account_id,
+            request.message_id,
+            request.body_text,
+            attachments=[model_to_dict(item) for item in request.attachments],
+        )
 
     @app.post("/tools/mail/reply/confirm")
     def mail_reply_confirm(request: ConfirmRequest, _: None = Depends(require_token)) -> dict[str, object]:

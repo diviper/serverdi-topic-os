@@ -81,10 +81,11 @@ ServerDi Topic OS gives operators a shared vocabulary and workflow for handling 
 |   |-- SELF_HOSTED_AGENT_OS.md
 |   |-- RELEASE_VALIDATION_CHECKLIST.md
 |   |-- ROADMAP.md
-|   |-- OPENAI_CODEX_OSS_APPLICATION.md
-|   |-- AI_ASSISTED_MAINTENANCE.md
+|   |-- MAINTAINER_SUPPORT_NOTES.md
+|   |-- MAINTENANCE_WORKFLOW.md
 |   |-- HERMES_TELEGRAM_OPERATOR_GUIDE.md
 |   |-- YANDEX_AGENT_TOOLS_FAKE_FIXTURES.md
+|   |-- INCOMING_MAIL_ATTACHMENT_DELIVERY_PLAN.md
 |   `-- TOPIC_APPROVAL_DEMO.md
 |-- tools/
 |   `-- public_safety_scan.py
@@ -118,6 +119,8 @@ The package demonstrates how self-hosted agents can interact with mail and calen
 - contact aliases with alias-only public listing;
 - MIME-decoded mail headers for readable agent summaries;
 - mail send and reply preview/confirm flows;
+- outgoing mail attachment preview/confirm flow with metadata-only previews;
+- a public-safe plan for future inbound attachment delivery from mail to owner-controlled chat;
 - calendar list and create preview/confirm flows with contact-alias attendee resolution;
 - calendar list range filtering;
 - explicit protection for work-calendar writes;
@@ -126,7 +129,7 @@ The package demonstrates how self-hosted agents can interact with mail and calen
 - richer fake connector fixtures for mail, attachment metadata, search snippets, CalDAV-like events, and repeated-confirmation failures;
 - a topic-based approval demo for public-safe write gating.
 
-The implementation is intentionally public-safe. It contains no real credentials, phone numbers, private calendar names, Telegram IDs, private message bodies, or deployment logs. See [Yandex Agent Tools README](packages/yandex-agent-tools/README.md), [fake fixture guide](docs/YANDEX_AGENT_TOOLS_FAKE_FIXTURES.md), [topic approval demo](docs/TOPIC_APPROVAL_DEMO.md), [Hermes integration](docs/HERMES_YANDEX_AGENT_TOOLS.md), [Hermes/Telegram operator guide](docs/HERMES_TELEGRAM_OPERATOR_GUIDE.md), [OpenClaw integration](docs/OPENCLAW_YANDEX_AGENT_TOOLS.md), [AI-assisted maintenance notes](docs/AI_ASSISTED_MAINTENANCE.md), and [connector security policy](docs/AGENT_CONNECTOR_SECURITY_POLICY.md).
+The implementation is intentionally public-safe. It contains no real credentials, phone numbers, private calendar names, Telegram IDs, private message bodies, or deployment logs. See [Yandex Agent Tools README](packages/yandex-agent-tools/README.md), [fake fixture guide](docs/YANDEX_AGENT_TOOLS_FAKE_FIXTURES.md), [incoming attachment delivery plan](docs/INCOMING_MAIL_ATTACHMENT_DELIVERY_PLAN.md), [topic approval demo](docs/TOPIC_APPROVAL_DEMO.md), [Hermes integration](docs/HERMES_YANDEX_AGENT_TOOLS.md), [Hermes/Telegram operator guide](docs/HERMES_TELEGRAM_OPERATOR_GUIDE.md), [OpenClaw integration](docs/OPENCLAW_YANDEX_AGENT_TOOLS.md), [maintenance workflow notes](docs/MAINTENANCE_WORKFLOW.md), and [connector security policy](docs/AGENT_CONNECTOR_SECURITY_POLICY.md).
 
 ## Public Safety Scan
 
@@ -163,7 +166,7 @@ Use these public maintenance files to track project direction and release readin
 
 - [Changelog](CHANGELOG.md)
 - [Roadmap](docs/ROADMAP.md)
-- [OpenAI Codex for Open Source application notes](docs/OPENAI_CODEX_OSS_APPLICATION.md)
+- [Maintainer support notes](docs/MAINTAINER_SUPPORT_NOTES.md)
 
 ## Release Validation
 

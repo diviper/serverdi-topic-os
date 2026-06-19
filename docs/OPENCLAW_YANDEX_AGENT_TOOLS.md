@@ -42,6 +42,7 @@ ports:
 
 - Read operations may return summaries or requested content.
 - Send/reply/create operations must return preview first.
+- Mail attachment previews must show metadata only and keep raw bytes out of task logs.
 - Confirm ids are one-time use.
 - Work-calendar writes require explicit owner confirmation.
 - Agents must report exactly what was executed and what was not executed.

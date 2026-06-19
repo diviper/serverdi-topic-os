@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+import base64
+import binascii
+import mimetypes
+import re
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from typing import Any
 from email.header import decode_header, make_header
 from email.utils import formataddr
 
@@ -57,7 +63,11 @@ class FakeMailBackend:
 
     def send_message(self, payload: dict[str, object]) -> dict[str, object]:
         self.sent.append(dict(payload))
-        return {"status": "sent", "saved_to_sent": True, "sent_count": len(self.sent)}
+        result: dict[str, object] = {"status": "sent", "saved_to_sent": True, "sent_count": len(self.sent)}
+        attachments = attachment_metadata(payload.get("attachments", []))
+        if attachments:
+            result["attachments"] = attachments
+        return result
 
 
 def default_fake_mail_backend() -> FakeMailBackend:
@@ -89,8 +99,31 @@ def default_fake_mail_backend() -> FakeMailBackend:
     )
 
 
+
+
+def attachment_metadata(attachments: object) -> list[dict[str, object]]:
+    if not isinstance(attachments, Sequence) or isinstance(attachments, (str, bytes, bytearray)):
+        return []
+    metadata: list[dict[str, object]] = []
+    for attachment in attachments:
+        if not isinstance(attachment, Mapping):
+            continue
+        metadata.append(
+            {
+                "filename": str(attachment.get("filename") or "attachment"),
+                "content_type": str(attachment.get("content_type") or "application/octet-stream"),
+                "size": int(attachment.get("size") or len(attachment.get("content_bytes") or b"")),
+            }
+        )
+    return metadata
+
 class MailTool:
     """Mail tools with preview/confirm write safety."""
+
+    MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024
+    MAX_TOTAL_ATTACHMENT_BYTES = 20 * 1024 * 1024
+    MAX_ATTACHMENTS = 10
+    MIME_TYPE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]{0,126}/[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]{0,126}$")
 
     def __init__(
         self,
@@ -116,10 +149,19 @@ class MailTool:
         self.registry.get(account_id)
         return {"account_id": account_id, "message": self.backend.read_message(account_id, message_id)}
 
-    def send_preview(self, account_id: str, to: list[str], subject: str, body_text: str) -> dict[str, object]:
+    def send_preview(
+        self,
+        account_id: str,
+        to: list[str],
+        subject: str,
+        body_text: str,
+        *,
+        attachments: Sequence[Mapping[str, Any]] | None = None,
+    ) -> dict[str, object]:
         account = self.registry.get(account_id)
         recipients, aliases = self._resolve_recipients(to)
         body_with_signature = self._append_signature(body_text, account.mail_signature_text)
+        attachment_payloads = self._normalize_attachments(attachments)
         payload = {
             "account_id": account_id,
             "from": formataddr((account.mail_display_name, account.mail_address)),
@@ -127,12 +169,15 @@ class MailTool:
             "subject": subject,
             "body_text": body_with_signature,
             "signature_applied": bool(account.mail_signature_text),
+            "attachments": attachment_payloads,
         }
         confirmation_id = self.confirmations.create("mail_send", payload)
+        preview_payload = dict(payload)
+        preview_payload["attachments"] = attachment_metadata(attachment_payloads)
         return {
             "requires_confirmation": True,
             "confirmation_id": confirmation_id,
-            "preview": payload,
+            "preview": preview_payload,
             "recipient_aliases_resolved": aliases,
         }
 
@@ -142,17 +187,90 @@ class MailTool:
             raise ValueError("confirmation_id does not belong to mail_send")
         return self.backend.send_message(action.payload)
 
-    def reply_preview(self, account_id: str, message_id: str, body_text: str) -> dict[str, object]:
+    def reply_preview(
+        self,
+        account_id: str,
+        message_id: str,
+        body_text: str,
+        *,
+        attachments: Sequence[Mapping[str, Any]] | None = None,
+    ) -> dict[str, object]:
         original = self.backend.read_message(account_id, message_id)
         subject = FakeMailBackend._decode_mime_header(str(original.get("subject", "")))
         if not subject.lower().startswith("re:"):
             subject = f"Re: {subject}"
-        preview = self.send_preview(account_id, [str(original.get("from"))], subject, body_text)
+        preview = self.send_preview(account_id, [str(original.get("from"))], subject, body_text, attachments=attachments)
         preview["preview"]["in_reply_to"] = original.get("message_id")
         return preview
 
     def reply_confirm(self, confirmation_id: str) -> dict[str, object]:
         return self.send_confirm(confirmation_id)
+
+
+    @classmethod
+    def _normalize_attachments(
+        cls, attachments: Sequence[Mapping[str, Any]] | None
+    ) -> list[dict[str, object]]:
+        if not attachments:
+            return []
+        if len(attachments) > cls.MAX_ATTACHMENTS:
+            raise ValueError(f"too many attachments; maximum is {cls.MAX_ATTACHMENTS}")
+        normalized: list[dict[str, object]] = []
+        total_size = 0
+        for index, attachment in enumerate(attachments, start=1):
+            if not isinstance(attachment, Mapping):
+                raise ValueError(f"attachment {index} must be an object")
+            filename = cls._safe_attachment_filename(str(attachment.get("filename") or f"attachment-{index}"))
+            content_type = cls._safe_content_type(
+                str(attachment.get("content_type") or "").strip(),
+                filename=filename,
+            )
+            content_base64 = str(attachment.get("content_base64") or "")
+            if not content_base64:
+                raise ValueError(f"attachment {filename} is missing content_base64")
+            if cls._decoded_base64_size_upper_bound(content_base64) > cls.MAX_ATTACHMENT_BYTES:
+                raise ValueError(f"attachment {filename} is too large for the configured limit")
+            try:
+                content_bytes = base64.b64decode(content_base64.encode("ascii"), validate=True)
+            except (UnicodeEncodeError, binascii.Error) as exc:
+                raise ValueError(f"attachment {filename} has invalid base64 content") from exc
+            if len(content_bytes) > cls.MAX_ATTACHMENT_BYTES:
+                raise ValueError(
+                    f"attachment {filename} is too large: {len(content_bytes)} bytes > {cls.MAX_ATTACHMENT_BYTES}"
+                )
+            total_size += len(content_bytes)
+            if total_size > cls.MAX_TOTAL_ATTACHMENT_BYTES:
+                raise ValueError(
+                    f"attachments are too large in total: {total_size} bytes > {cls.MAX_TOTAL_ATTACHMENT_BYTES}"
+                )
+            normalized.append(
+                {
+                    "filename": filename,
+                    "content_type": content_type,
+                    "size": len(content_bytes),
+                    "content_bytes": content_bytes,
+                }
+            )
+        return normalized
+
+    @classmethod
+    def _safe_content_type(cls, content_type: str, *, filename: str) -> str:
+        value = content_type or mimetypes.guess_type(filename)[0] or "application/octet-stream"
+        if not cls.MIME_TYPE_RE.fullmatch(value):
+            raise ValueError(f"attachment {filename} has invalid content_type")
+        return value
+
+    @staticmethod
+    def _decoded_base64_size_upper_bound(content_base64: str) -> int:
+        return ((len(content_base64.strip()) + 3) // 4) * 3
+
+    @staticmethod
+    def _safe_attachment_filename(filename: str) -> str:
+        name = filename.replace("\x00", "").strip()
+        name = name.replace("\\", "/").split("/")[-1]
+        name = re.sub(r"[\x00-\x1f\x7f]", "_", name)
+        name = name.strip(" .")
+        return name or "attachment"
 
     def _resolve_recipients(self, recipients: list[str]) -> tuple[list[str], list[str]]:
         resolved: list[str] = []

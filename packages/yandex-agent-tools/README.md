@@ -15,6 +15,7 @@ Self-hosted agents need productive tools, but mail and calendar writes are risky
 - decoded MIME mail headers for Telegram-readable summaries;
 - calendar list range filters;
 - preview/confirm before sending mail or creating events;
+- outgoing mail attachment previews with metadata-only display and one-time confirmation payloads;
 - extra explicit confirmation for work-calendar writes;
 - fake backends for tests so CI never touches real networks.
 
@@ -51,12 +52,33 @@ Personal Calendar
 
 Contact aliases are optional. List responses expose alias metadata only and do not return raw contact emails. Private Telegram/Hermes deployments should expose contact creation as a separate tool/action (for example `yandex_contacts action=add`) instead of trying to write to the read-only `/contacts` endpoint. Calendar create previews can use those aliases in `attendees` so users can say “invite teammate_alpha” without pasting an email into chat.
 
+
+## Mail attachment previews
+
+Outgoing mail previews may include attachment payload objects:
+
+```json
+{
+  "filename": "report.pdf",
+  "content_type": "application/pdf",
+  "content_base64": "<base64 bytes>"
+}
+```
+
+The preview response exposes only attachment metadata:
+
+```json
+[{"filename": "report.pdf", "content_type": "application/pdf", "size": 12345}]
+```
+
+The public API must not return raw bytes or base64 in a preview. The connector keeps the decoded bytes inside the one-time in-memory confirmation payload so `send_confirm` sends exactly the draft the owner previewed. Tests use tiny fake byte strings and fake in-memory backends only; CI never contacts real SMTP/IMAP services.
+
 ## Tool flow
 
 1. Agent asks for a read operation: list/search/read mail or list calendar events.
 2. Service returns safe summaries or requested content.
 3. Agent asks for a write operation: send/reply/create event.
-4. Service returns a preview and a one-time confirmation id.
+4. Service returns a preview and a one-time confirmation id; attachment previews show metadata only.
 5. Agent shows the preview to the owner.
 6. Owner confirms.
 7. Service executes the write action.

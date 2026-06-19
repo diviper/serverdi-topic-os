@@ -34,13 +34,15 @@ Any operation that sends data, creates data, edits data, deletes data, or calls 
 
 Confirm ids must not be reusable.
 
+Attachment previews must return metadata only: filename, content type, and size. Raw bytes or base64 payloads may be accepted by a private connector request, but they must not appear in preview responses, logs, docs, or public fixtures.
+
 ## Work-calendar rule
 
 Work-calendar writes require explicit owner confirmation because work calendars may be shared with teammates. A generic request such as "add this to the calendar" is not enough.
 
 ## Testing rule
 
-CI tests must not call real IMAP, SMTP, CalDAV, Telegram, paid model APIs, or private infrastructure. Use fake backends and fixtures.
+CI tests must not call real IMAP, SMTP, CalDAV, Telegram, paid model APIs, or private infrastructure. Use fake backends and fixtures. Attachment tests must use small synthetic byte strings only.
 
 ## Publication rule
 

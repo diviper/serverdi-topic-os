@@ -8,7 +8,7 @@ This roadmap tracks public-safe work for ServerDi Topic OS. It intentionally exc
 - Public safety scanner with strict CI workflow.
 - Release validation checklist.
 - Public-safe topic map examples for solo maintainers, small teams, and documentation-heavy workspaces.
-- Project maintenance pack with changelog, roadmap, OpenAI Codex OSS application notes, and local-only journal ignore support.
+- Project maintenance pack with changelog, roadmap, neutral maintainer support notes, and local-only journal ignore support.
 
 ## Active Build Track: Agent Tool Connectors
 
@@ -17,6 +17,7 @@ This track turns the playbook into a small public-safe reference implementation.
 - Add a public-safe Yandex Agent Tools reference package under `packages/yandex-agent-tools/`.
 - Keep all fixtures fake: `work@example.com`, `personal@example.com`, `Work Calendar`, and `Personal Calendar`.
 - Demonstrate mail list/search/read plus send/reply preview-confirm flows.
+- Demonstrate outgoing mail attachment preview-confirm flows with metadata-only previews.
 - Demonstrate calendar list plus create preview-confirm flows.
 - Require additional explicit confirmation for work-calendar writes.
 - Add Docker and compose examples for private self-hosted deployment.
@@ -29,6 +30,7 @@ This track turns the playbook into a small public-safe reference implementation.
 
 - Add more focused prompt templates for release review, stale context cleanup, and incident follow-up.
 - Improve scanner guidance for maintainers reviewing warnings and blockers.
+- Implement the public-safe inbound mail attachment delivery plan with fake fixtures, metadata-only previews, and private-adapter boundaries.
 - Add more public-safe examples for small open-source maintainers.
 - Keep README navigation current as the project grows.
 

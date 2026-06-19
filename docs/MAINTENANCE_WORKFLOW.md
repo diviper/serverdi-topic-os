@@ -1,14 +1,12 @@
-# AI-Assisted Maintenance Notes
+# Maintenance workflow notes
 
-This document summarizes how ServerDi Topic OS supports safe AI-assisted maintenance for open-source repositories.
-
-It is public-safe by design: examples use fake accounts, fake connector fixtures, and sanitized approval workflows only.
+This document describes how ServerDi Topic OS keeps repository maintenance reviewable. It is public-safe: examples use fake accounts, fake connector fixtures, and sanitized approval workflows only.
 
 ## Project summary
 
-ServerDi Topic OS is an Apache-2.0 playbook and reference toolkit for safer self-hosted AI agent operations.
+ServerDi Topic OS is an Apache-2.0 playbook and reference toolkit for safer self-hosted agent operations.
 
-The project focuses on practical boundaries for agents that can inspect repositories, prepare patches, call connector tools, and request human approval before write actions.
+The project focuses on practical boundaries for tools that inspect repositories, prepare patches, call connector services, and request human approval before write actions.
 
 ## Current public artifacts
 
@@ -21,16 +19,16 @@ The project focuses on practical boundaries for agents that can inspect reposito
 - Topic approval demo: `docs/TOPIC_APPROVAL_DEMO.md`
 - Roadmap: `docs/ROADMAP.md`
 
-## Why AI assistance is useful here
+## Why this maintenance model works
 
-AI coding assistants can help maintain this repository because the work is naturally code-and-test heavy:
+The repository is code-and-test heavy in small pieces:
 
 1. Add or refine connector fixtures.
 2. Expand tests for preview/confirm safety behavior.
-3. Improve docs for bounded agent workflows.
+3. Improve docs for bounded workflows.
 4. Keep public-safety scanner rules accurate.
 5. Review pull requests for accidental private-data exposure.
-6. Generate small public-safe examples that are easy for maintainers to audit.
+6. Keep examples small enough for maintainers to audit.
 
 ## Safety model
 
@@ -50,8 +48,9 @@ The public reference package includes:
 
 - a FastAPI HTTP adapter;
 - fake mail/calendar backends;
-- richer fake mail and CalDAV-style fixtures;
+- fake mail and CalDAV-style fixtures;
 - mail send/reply preview-confirm examples;
+- outgoing mail attachment preview-confirm examples with metadata-only previews;
 - calendar create preview-confirm examples;
 - Docker and Docker Compose examples;
 - Hermes and OpenClaw integration guides;
@@ -61,7 +60,7 @@ The public reference package includes:
 
 ## Good next maintenance tasks
 
-These tasks are intentionally public-safe and suitable for incremental PRs:
+These tasks are public-safe and suitable for incremental PRs:
 
 1. Add more fake provider error fixtures.
 2. Add structured JSON schemas for connector responses.
