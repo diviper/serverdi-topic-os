@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Added public-safe outgoing Yandex mail attachment preview/confirm support with metadata-only previews, bounded fake payload handling, and tests for invalid/oversize input.
+- Added public-safe outgoing Yandex mail attachment preview/confirm support with metadata-only previews, bounded fake payload handling, multiple recipient fields (`to`/`cc`/`bcc`), comma/semicolon recipient normalization, header-injection guards, preview/confirm payload isolation, and tests for invalid/oversize input.
 - Hardened attachment validation for filenames, MIME content types, per-file size, and total attachment size.
 - Added a public-safe future plan for inbound mail attachment delivery to owner-controlled chat channels.
 - Reviewed current public docs, renamed application-specific maintenance notes to neutral maintainer docs, and kept maintainer journal notes in ignored local files only.

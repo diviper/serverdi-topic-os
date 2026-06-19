@@ -95,14 +95,14 @@ Agent: calls mail list/search and returns sanitized headers
 Write example:
 
 ```text
-User: send teammate_alpha a note from personal mail
+User: send teammate_alpha a note from personal mail and copy work
 Agent: creates a send preview
-Agent: shows sender, recipient alias, subject, body, and confirmation id
+Agent: shows sender, normalized To/Cc/Bcc, subject, body, attachment metadata, and confirmation id
 User: confirms
 Agent: executes send_confirm
 ```
 
-The implementation should decode MIME-encoded mail headers before returning them to the agent, so subjects and display names are readable in Telegram.
+Mail runtimes should normalize comma/semicolon-separated recipient strings before previewing, so a chat phrase like `reader@example.org, teammate_alpha; work` becomes distinct recipients rather than one malformed address. The implementation should decode MIME-encoded mail headers before returning them to the agent, so subjects and display names are readable in Telegram.
 
 ## Calendar flow
 

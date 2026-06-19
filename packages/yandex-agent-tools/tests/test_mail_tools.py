@@ -1,4 +1,4 @@
-from yandex_agent_tools.accounts import ContactConfig, ContactRegistry
+from yandex_agent_tools.accounts import AccountConfig, AccountRegistry, ContactConfig, ContactRegistry
 from yandex_agent_tools.mail import FakeMailBackend, MailTool
 
 
@@ -41,6 +41,31 @@ def test_mail_confirmation_id_is_one_time_use():
         raise AssertionError("confirmation_id was reused")
 
 
+def test_mail_preview_mutation_does_not_change_confirmation_payload():
+    tool = MailTool()
+    preview = tool.send_preview("personal", ["reader@example.org"], "Hello", "Draft body", cc=["copy@example.org"])
+
+    preview["preview"]["to"].append("attacker@example.org")
+    preview["preview"]["cc"].append("attacker-copy@example.org")
+    result = tool.send_confirm(preview["confirmation_id"])
+
+    assert result["status"] == "sent"
+    assert tool.backend.sent[0]["to"] == ["reader@example.org"]
+    assert tool.backend.sent[0]["cc"] == ["copy@example.org"]
+
+
+def test_mail_send_preview_rejects_empty_to_recipients():
+    tool = MailTool()
+
+    try:
+        tool.send_preview("personal", " ; , ", "Hello", "Draft body")
+    except ValueError as exc:
+        assert "recipient" in str(exc)
+    else:
+        raise AssertionError("empty recipient list accepted")
+    assert tool.backend.sent == []
+
+
 def test_mail_reply_preview_sets_re_subject_and_in_reply_to():
     tool = MailTool()
 
@@ -60,6 +85,160 @@ def test_mail_send_preview_resolves_account_and_contact_aliases():
 
     assert preview["preview"]["to"] == ["work@example.com", "teammate.alpha@example.com"]
     assert preview["recipient_aliases_resolved"] == ["work", "teammate_alpha"]
+
+
+def test_mail_send_preview_supports_cc_bcc_and_reports_aliases_by_field():
+    contacts = ContactRegistry(
+        {"teammate_alpha": ContactConfig("teammate_alpha", "teammate.alpha@example.com", "Teammate Alpha")}
+    )
+    tool = MailTool(contact_registry=contacts)
+
+    preview = tool.send_preview(
+        "personal",
+        ["reader@example.org"],
+        "Hello",
+        "Draft body",
+        cc=["work"],
+        bcc=["teammate_alpha"],
+    )
+
+    assert preview["preview"]["to"] == ["reader@example.org"]
+    assert preview["preview"]["cc"] == ["work@example.com"]
+    assert preview["preview"]["bcc"] == ["teammate.alpha@example.com"]
+    assert preview["recipient_aliases_resolved"] == ["work", "teammate_alpha"]
+    assert preview["recipient_aliases_resolved_by_field"] == {
+        "to": [],
+        "cc": ["work"],
+        "bcc": ["teammate_alpha"],
+    }
+
+
+def test_mail_send_preview_splits_comma_and_semicolon_recipient_strings():
+    tool = MailTool()
+
+    preview = tool.send_preview(
+        "personal",
+        "reader@example.org, second@example.org; work",
+        "Hello",
+        "Draft body",
+        cc="copy@example.org; personal",
+    )
+
+    assert preview["preview"]["to"] == ["reader@example.org", "second@example.org", "work@example.com"]
+    assert preview["preview"]["cc"] == ["copy@example.org", "personal@example.com"]
+    assert preview["recipient_aliases_resolved_by_field"] == {
+        "to": ["work"],
+        "cc": ["personal"],
+        "bcc": [],
+    }
+
+
+def test_mail_send_preview_keeps_quoted_display_name_with_comma():
+    tool = MailTool()
+
+    preview = tool.send_preview(
+        "personal",
+        '"Doe, Jane" <jane@example.org>; work',
+        "Hello",
+        "Draft body",
+    )
+
+    assert preview["preview"]["to"] == ['"Doe, Jane" <jane@example.org>', "work@example.com"]
+
+
+def test_mail_send_confirm_preserves_cc_bcc_with_attachments_once():
+    import base64
+
+    tool = MailTool()
+
+    preview = tool.send_preview(
+        "personal",
+        ["reader@example.org"],
+        "Attachment send",
+        "Draft body",
+        cc=["work"],
+        bcc=["personal"],
+        attachments=[
+            {
+                "filename": "report.txt",
+                "content_type": "text/plain",
+                "content_base64": base64.b64encode(b"fake-report").decode("ascii"),
+            }
+        ],
+    )
+    result = tool.send_confirm(preview["confirmation_id"])
+
+    assert result["status"] == "sent"
+    sent = tool.backend.sent[0]
+    assert sent["to"] == ["reader@example.org"]
+    assert sent["cc"] == ["work@example.com"]
+    assert sent["bcc"] == ["personal@example.com"]
+    assert sent["attachments"][0]["content_bytes"] == b"fake-report"
+    try:
+        tool.send_confirm(preview["confirmation_id"])
+    except KeyError as exc:
+        assert "Unknown or already used" in str(exc)
+    else:
+        raise AssertionError("confirmation_id was reused")
+
+
+def test_mail_reply_preview_supports_cc_bcc_and_attachments():
+    import base64
+
+    tool = MailTool()
+
+    preview = tool.reply_preview(
+        "work",
+        "w1",
+        "Thanks for the review.",
+        cc=["personal"],
+        bcc=["reader@example.org"],
+        attachments=[
+            {
+                "filename": "reply-note.txt",
+                "content_type": "text/plain",
+                "content_base64": base64.b64encode(b"reply-note").decode("ascii"),
+            }
+        ],
+    )
+
+    assert preview["preview"]["subject"] == "Re: Reference implementation review"
+    assert preview["preview"]["in_reply_to"] == "<w1@example.org>"
+    assert preview["preview"]["cc"] == ["personal@example.com"]
+    assert preview["preview"]["bcc"] == ["reader@example.org"]
+    assert preview["preview"]["attachments"] == [
+        {"filename": "reply-note.txt", "content_type": "text/plain", "size": 10}
+    ]
+
+
+def test_mail_reply_confirm_sends_exact_preview_payload():
+    import base64
+
+    tool = MailTool()
+
+    preview = tool.reply_preview(
+        "work",
+        "w1",
+        "Thanks for the review.",
+        cc=["personal"],
+        bcc=["reader@example.org"],
+        attachments=[
+            {
+                "filename": "reply-note.txt",
+                "content_type": "text/plain",
+                "content_base64": base64.b64encode(b"reply-note").decode("ascii"),
+            }
+        ],
+    )
+    result = tool.reply_confirm(preview["confirmation_id"])
+
+    assert result["status"] == "sent"
+    sent = tool.backend.sent[0]
+    assert sent["subject"] == preview["preview"]["subject"]
+    assert sent["in_reply_to"] == preview["preview"]["in_reply_to"]
+    assert sent["cc"] == preview["preview"]["cc"]
+    assert sent["bcc"] == preview["preview"]["bcc"]
+    assert sent["attachments"][0]["content_bytes"] == b"reply-note"
 
 
 def test_mail_headers_decode_mime_words_before_returning_headers():
@@ -163,6 +342,79 @@ def test_mail_send_preview_rejects_invalid_attachment_base64():
         assert "base64" in str(exc)
     else:
         raise AssertionError("invalid base64 accepted")
+    assert tool.backend.sent == []
+
+
+def test_mail_send_preview_rejects_recipient_header_injection():
+    tool = MailTool()
+
+    try:
+        tool.send_preview("personal", "reader@example.org\r\nBcc: attacker@example.org", "Hello", "Draft body")
+    except ValueError as exc:
+        assert "recipient" in str(exc)
+    else:
+        raise AssertionError("recipient header injection accepted")
+    assert tool.backend.sent == []
+
+
+def test_mail_send_preview_rejects_contact_alias_recipient_header_injection():
+    contacts = ContactRegistry(
+        {"bad_contact": ContactConfig("bad_contact", "victim@example.org\r\nBcc: attacker@example.org", "Bad Contact")}
+    )
+    tool = MailTool(contact_registry=contacts)
+
+    try:
+        tool.send_preview("personal", ["bad_contact"], "Hello", "Draft body")
+    except ValueError as exc:
+        assert "recipient" in str(exc)
+    else:
+        raise AssertionError("contact alias recipient header injection accepted")
+    assert tool.backend.sent == []
+
+
+def test_mail_send_preview_rejects_account_alias_recipient_header_injection():
+    registry = AccountRegistry(
+        {
+            "bad_account": AccountConfig(
+                account_id="bad_account",
+                mail_address="victim@example.org\r\nBcc: attacker@example.org",
+                mail_display_name="Bad Account",
+                mail_signature_text="",
+                calendar_username="bad@example.org",
+                calendar_name="Bad Calendar",
+                calendar_writes_require_explicit_confirm=False,
+            ),
+            "personal": AccountConfig(
+                account_id="personal",
+                mail_address="personal@example.com",
+                mail_display_name="Personal Agent",
+                mail_signature_text="Regards,\nPersonal Agent",
+                calendar_username="personal@example.com",
+                calendar_name="Personal Calendar",
+                calendar_writes_require_explicit_confirm=False,
+            ),
+        }
+    )
+    tool = MailTool(registry=registry)
+
+    try:
+        tool.send_preview("personal", ["bad_account"], "Hello", "Draft body")
+    except ValueError as exc:
+        assert "recipient" in str(exc)
+    else:
+        raise AssertionError("account alias recipient header injection accepted")
+    assert tool.backend.sent == []
+
+
+def test_mail_send_preview_rejects_subject_header_injection():
+    tool = MailTool()
+
+    try:
+        tool.send_preview("personal", ["reader@example.org"], "Hello\nBcc: attacker@example.org", "Draft body")
+    except ValueError as exc:
+        assert "subject" in str(exc)
+    else:
+        raise AssertionError("subject header injection accepted")
     assert tool.backend.sent == []
 
 

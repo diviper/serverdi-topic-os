@@ -55,7 +55,17 @@ Contact aliases are optional. List responses expose alias metadata only and do n
 
 ## Mail attachment previews
 
-Outgoing mail previews may include attachment payload objects:
+Outgoing mail previews may address multiple recipient fields. `to`, `cc`, and `bcc` accept either lists or comma/semicolon-separated strings; configured account/contact aliases are resolved before the preview is stored:
+
+```json
+{
+  "to": ["reader@example.org"],
+  "cc": "copy@example.org; work",
+  "bcc": ["teammate_alpha"]
+}
+```
+
+Outgoing mail previews may also include attachment payload objects:
 
 ```json
 {
@@ -65,10 +75,15 @@ Outgoing mail previews may include attachment payload objects:
 }
 ```
 
-The preview response exposes only attachment metadata:
+The preview response exposes recipient fields and attachment metadata only:
 
 ```json
-[{"filename": "report.pdf", "content_type": "application/pdf", "size": 12345}]
+{
+  "to": ["reader@example.org"],
+  "cc": ["copy@example.org", "work@example.com"],
+  "bcc": ["teammate.alpha@example.com"],
+  "attachments": [{"filename": "report.pdf", "content_type": "application/pdf", "size": 12345}]
+}
 ```
 
 The public API must not return raw bytes or base64 in a preview. The connector keeps the decoded bytes inside the one-time in-memory confirmation payload so `send_confirm` sends exactly the draft the owner previewed. Tests use tiny fake byte strings and fake in-memory backends only; CI never contacts real SMTP/IMAP services.

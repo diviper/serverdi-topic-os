@@ -44,15 +44,19 @@ else:
 
     class MailSendPreviewRequest(BaseModel):
         account_id: str
-        to: list[str]
+        to: list[str] | str
         subject: str
         body_text: str
+        cc: list[str] | str = Field(default_factory=list)
+        bcc: list[str] | str = Field(default_factory=list)
         attachments: list[MailAttachmentInput] = Field(default_factory=list)
 
     class MailReplyPreviewRequest(BaseModel):
         account_id: str
         message_id: str
         body_text: str
+        cc: list[str] | str = Field(default_factory=list)
+        bcc: list[str] | str = Field(default_factory=list)
         attachments: list[MailAttachmentInput] = Field(default_factory=list)
 
     def model_to_dict(model: BaseModel) -> dict[str, object]:
@@ -110,6 +114,8 @@ else:
             request.to,
             request.subject,
             request.body_text,
+            cc=request.cc,
+            bcc=request.bcc,
             attachments=[model_to_dict(item) for item in request.attachments],
         )
 
@@ -123,6 +129,8 @@ else:
             request.account_id,
             request.message_id,
             request.body_text,
+            cc=request.cc,
+            bcc=request.bcc,
             attachments=[model_to_dict(item) for item in request.attachments],
         )
 
